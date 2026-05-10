@@ -299,10 +299,171 @@ This avoids WasmCloud entirely and gets to MVP faster. WASM adoption could happe
 
 ---
 
-## Immediate Next Steps
+---
 
-1. **Choose control plane runtime:** WASM/WasmCloud or native?
-2. **Prototype credential storage:** Set up WasmCloud secrets (if WASM) or standard Vault integration
-3. **Design capability providers:** Network discovery, system info, command execution
-4. **Plan agent binary:** Sketch discovery logic, identify privileged operations
-5. **Validate deployment targets:** Ensure chosen tech stack deploys to RPi, VMs, K8s
+## Comparison: WasmCloud vs Spin/SpinKube vs Project Ocre
+
+### **Project Ocre (Atym)**
+
+**What it is:** A minimal WASM container runtime from the Linux Foundation, optimized for resource-constrained embedded systems.
+
+**Runtime footprint:** 
+- 128KB (RTOS version on Zephyr)
+- <1MB (Linux version)
+
+**Target devices:**
+- MCUs with 256KB+ memory (Zephyr RTOS)
+- Constrained CPUs with 1MB-1GB RAM
+- Runs containerized WASM applications on firmware
+
+**Architecture:**
+- Hardware abstraction layer
+- Fine-grained permissions model
+- OCI-like container interface
+- Inter-container communication
+
+**Maturity:** Early/research phase (Linux Foundation's LFedge project)
+
+**Best for:** IoT/MCU edge devices with severe memory constraints (not your primary target)
+
+**Verdict for Host Manager:** ❌ Not suitable for control plane. Focus is ultra-constrained devices; your control plane needs distributed system capabilities, not minimal footprint.
+
+---
+
+### **Spin/SpinKube (Fermyon)**
+
+**What it is:** Serverless WASM framework (Spin) + Kubernetes operator (SpinKube) for running WASM workloads natively in K8s.
+
+**Components:**
+- **Spin**: Developer framework for serverless WASM functions (built-in bindings for KV, DB, AI, etc.)
+- **SpinKube**: Kubernetes operator + containerd shim for scheduling Spin apps as WASM workloads
+
+**Performance:**
+- 0.5ms cold start (vs. 100-500ms traditional serverless)
+- Minimal memory footprint
+- Sub-second scaling
+
+**Architecture:**
+- Serverless-focused (event-driven, request-response)
+- Kubernetes-native scheduling
+- CNCF Sandbox status (accepted January 2025)
+- Tight integration with K8s primitives (Secrets, ConfigMaps, volumes)
+
+**Maturity:** Stable for Kubernetes workloads (CNCF Sandbox)
+
+**Best for:** Serverless functions in Kubernetes clusters; event-driven microservices
+
+**Limitations for Host Manager:**
+- Designed for serverless/FaaS patterns (stateless, request-response)
+- Tight coupling to Kubernetes (good if control plane runs IN K8s, bad if control plane must be independent)
+- Less suited for long-running coordination services (your control plane needs to maintain state across endpoint connections)
+
+**Verdict for Host Manager:** ⚠️ Partial fit. Good IF your control plane runs inside a Kubernetes cluster, but adds a hard dependency on Kubernetes. Not portable to standalone deployments.
+
+---
+
+### **WasmCloud**
+
+**What it is:** Distributed, topology-agnostic WASM microservices runtime with capability providers and secure inter-component communication.
+
+**Architecture:**
+- Actor model with WebAssembly components
+- Capability providers (external services)
+- Pluggable secrets backends (Vault, K8s, AWS Secrets Manager)
+- NATS-based messaging
+- Declarative topology (wash)
+
+**Key capabilities:**
+- Topology-agnostic: runs on Linux, Kubernetes, cloud, edge (no platform coupling)
+- Distributed component linking
+- Pluggable secrets + credential providers
+- Security-first: mediated host access, capability-based controls
+
+**Maturity:** CNCF Incubating (since Nov 2024); actively maintained; limited production scale use
+
+**Best for:** Distributed microservices that need to adapt to different deployment environments; control planes coordinating diverse endpoints
+
+**Verdict for Host Manager:** ✅ Best fit. Topology-agnostic; capability providers align perfectly with your architecture (discovery, system info, credentials); can run anywhere (standalone server, inside K8s, edge).
+
+---
+
+## Platform Comparison Matrix
+
+| Aspect | Project Ocre | Spin/SpinKube | WasmCloud |
+|--------|---|---|---|
+| **Runtime footprint** | <1MB | Bundled with Spin (~10-50MB) | Configurable, ~50-100MB |
+| **Memory efficiency** | ★★★★★ (best) | ★★★★☆ | ★★★☆☆ |
+| **Deployment targets** | MCU/constrained edge | Kubernetes | Linux, K8s, edge, cloud |
+| **Architecture pattern** | Container runtime | Serverless/FaaS | Microservices/distributed |
+| **Statefulness** | Stateless containers | Stateless functions | Stateful actors |
+| **Coordination capability** | Basic (inter-container) | None (FaaS) | Rich (distributed) |
+| **Maturity** | Research | Stable (CNCF Sandbox) | Incubating (CNCF) |
+| **Secrets management** | Not built-in | K8s-integrated | Pluggable backends |
+| **Platform coupling** | Minimal | Tight (K8s) | None (topology-agnostic) |
+
+---
+
+## Recommendation: WasmCloud for MVP
+
+**WasmCloud is the best fit for Host Manager's Hybrid Strategy control plane.**
+
+**Why:**
+
+1. **Topology-agnostic:** Works on your developer laptop, a single Linux server, inside Kubernetes clusters, or on edge gateways—without code changes or different deployment models.
+
+2. **Capability providers align perfectly:**
+   - Discovery provider (network scanning)
+   - System info provider (hardware detection)
+   - Credentials provider (credential storage and access)
+   - Execution provider (delegate to agents)
+
+3. **Distributed coordination:** Actor model with NATS messaging is well-suited for managing multiple endpoints concurrently and maintaining state across them.
+
+4. **Secrets architecture:** Already thought through; pluggable backends means you choose Vault, K8s secrets, or in-house solution without code changes.
+
+5. **Scalability:** NATS-based messaging is battle-tested for distributed systems; supports many-to-many component linking.
+
+**When to consider Spin/SpinKube:** If your MVP constraint is "control plane MUST run as a Kubernetes workload with minimal overhead," Spin/SpinKube is excellent. But this adds a hard dependency on Kubernetes for the control plane, which may not be necessary yet.
+
+**Defer Project Ocre:** Relevant for Phase 2 if you add support for ultra-constrained MCU devices as endpoints (not Raspberry Pi level). MCUs are a different deployment story.
+
+---
+
+## WasmCloud + Agents: Refined Hybrid Strategy
+
+**Control Plane (WASM/WasmCloud):**
+- Core management logic as WasmCloud actors
+- Capability providers for:
+  - Credential storage (Vault-backed)
+  - Discovery service (delegates to native service or built-in provider)
+  - System info provider (delegates to native service)
+  - Command execution (routes to agents)
+- WASI 0.3 async for concurrent endpoint management
+- Runs anywhere: standalone, K8s, edge
+
+**Agents (Native Rust binaries):**
+- Lightweight binary deployed to each endpoint
+- Direct OS access for hardware detection and privileged operations
+- Secure credential access (requests from control plane)
+- Connection back to control plane (gRPC, WebSocket, or NATS)
+
+**Deployment in MVP:**
+- Single WasmCloud host (or small cluster) for control plane
+- Native agents on Linux/RPi/VM endpoints
+- Secrets backend: Vault (or K8s secrets if in Kubernetes)
+
+**Future options:**
+- SpinKube for K8s endpoints (if control plane scales to many K8s clusters)
+- Project Ocre for MCU endpoints (if scope expands to IoT/embedded)
+
+---
+
+## Immediate Next Steps (Updated)
+
+1. ✅ **Confirm: Use WasmCloud for control plane** (with WASI 0.3 async)
+2. **Design ADR-001:** WasmCloud control plane architecture + capability providers
+3. **Design ADR-002:** Credential storage (Vault integration via WasmCloud)
+4. **Design ADR-003:** Network discovery and delegation strategy
+5. **Design ADR-004:** Agent communication protocol with control plane
+6. **Prototype:** Build minimal WasmCloud component + first capability provider
+7. **Prototype:** Sketch agent binary (Rust) with control plane integration
