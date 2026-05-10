@@ -391,11 +391,25 @@ Host Manager's MVP must auto-detect endpoints on a network. Users should be able
    - Query cluster API for nodes
    - Extract node IP, status, labels
 
-**2. Passive monitoring**
+**2. NetBox integration (Optional, Low Risk)**
+   - Push discovered endpoints to NetBox for centralized inventory
+   - Discovered endpoints visible in both Host Manager and NetBox
+   - Query NetBox API to reduce discovery scope (check existing inventory first)
+   - Plugin for Host Manager-specific metadata (last_probed, online_status)
+   - See: RESEARCH-NETBOX-INFRAGRAPH.md for details
+
+**3. Infragraph integration (Optional, Deferred)**
+   - Wait for Infragraph stable release (late 2026/2027)
+   - Query Infragraph knowledge graph for existing infrastructure (from Terraform, cloud APIs)
+   - Reduce discovery scope: only probe resources not already in Infragraph
+   - Bidirectional sync: push Host Manager findings back to Infragraph
+   - See: RESEARCH-NETBOX-INFRAGRAPH.md for details
+
+**4. Passive monitoring**
    - Continuous listening to network for endpoint state changes
    - Supplements periodic active discovery
 
-**3. SSDP discovery**
+**5. SSDP discovery**
    - Simple Service Discovery Protocol (used by UPnP devices)
    - Low priority (niche device support)
 
