@@ -1,0 +1,83 @@
+---
+# Host Manager — local development stack
+#
+# Starts: NATS (with JetStream + WebSocket on 443), OpenBao (dev mode),
+#         and the WasmCloud host. Actors are deployed via `wash` after the
+#         host is healthy.
+#
+# Usage:
+#   cp .env.example .env          # fill in OAuth credentials
+#   docker compose up -d
+#   wash app deploy wadm/hostmgr.yaml
+
+name: hostmgr
+
+services:
+  # ── NATS ────────────────────────────────────────────────────────────────────
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command:
+      - "-c"
+      - "/etc/nats/nats.conf"
+    ports:
+      - "4222:4222"   # standard NATS TCP (dev only; agents use WSS 443 in prod)
+      - "443:443"     # NATS WebSocket over TLS (primary agent transport, ADR-005)
+      - "8222:8222"   # NATS monitoring HTTP
+    volumes:
+      - ../../config/nats.conf:/etc/nats/nats.conf:ro
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD", "nats-server", "--help"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── OpenBao (Vault-compatible) ───────────────────────────────────────────────
+  openbao:
+    image: openbao/openbao:2.0
+    restart: unless-stopped
+    command: server -dev
+    environment:
+      BAO_DEV_ROOT_TOKEN_ID: "${HOSTMGR_OPENBAO_DEV_TOKEN:-dev-only-token}"
+      BAO_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK       # required for memory locking in production mode
+    volumes:
+      - ../../config/openbao.hcl:/vault/config/openbao.hcl:ro
+      - openbao-data:/vault/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8200/v1/sys/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ── WasmCloud host ───────────────────────────────────────────────────────────
+  wasmcloud:
+    image: ghcr.io/wasmcloud/wasmcloud:1.4
+    restart: unless-stopped
+    depends_on:
+      nats:
+        condition: service_healthy
+      openbao:
+        condition: service_healthy
+    environment:
+      WASMCLOUD_NATS_HOST: nats
+      WASMCLOUD_NATS_PORT: 4222
+      RUST_LOG: "info,wasmcloud=debug"
+    ports:
+      - "8080:8080"   # HTTP port served by the api-gateway actor
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  nats-data:
+  openbao-data:

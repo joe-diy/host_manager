@@ -1,0 +1,90 @@
+# Host Manager Helm chart — default values
+# Override in your own values file or with --set flags.
+
+# ---------------------------------------------------------------------------
+# WasmCloud host
+# ---------------------------------------------------------------------------
+wasmcloud:
+  image:
+    repository: ghcr.io/wasmcloud/wasmcloud
+    tag: "1.4"
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  service:
+    type: ClusterIP
+    port: 8080
+
+# ---------------------------------------------------------------------------
+# Ingress (expose api-gateway to the cluster edge)
+# ---------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: hostmgr.example.com
+  tls: []
+
+# ---------------------------------------------------------------------------
+# NATS (bundled sub-chart)
+# ---------------------------------------------------------------------------
+nats:
+  enabled: true
+  config:
+    jetstream:
+      enabled: true
+      fileStore:
+        enabled: true
+        size: 4Gi
+    websocket:
+      enabled: true
+      port: 443
+      tls:
+        enabled: true  # provide cert via cert-manager or secret ref
+
+# ---------------------------------------------------------------------------
+# OpenBao
+# ---------------------------------------------------------------------------
+openbao:
+  # Use an existing OpenBao/Vault instance by setting externalUrl.
+  # If empty, a dev-mode OpenBao pod is deployed (not for production).
+  externalUrl: ""
+  devMode:
+    enabled: true
+    rootToken: "change-me-in-production"
+  tokenSecretRef: ""  # k8s secret name containing VAULT_TOKEN
+
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
+auth:
+  allowedUsers: ""  # e.g. "github:joewxboy,google:joe@example.com"
+  github:
+    clientId: ""
+    clientSecretRef: ""   # k8s secret name
+  google:
+    clientId: ""
+    clientSecretRef: ""
+
+# ---------------------------------------------------------------------------
+# Agent defaults
+# ---------------------------------------------------------------------------
+agent:
+  bootstrapTokenTtl: 300
+  updateTrigger: manual
+
+# ---------------------------------------------------------------------------
+# MCP client (optional)
+# ---------------------------------------------------------------------------
+mcp:
+  timeoutMs: 5000
+  servers: []
+  # - name: netbox
+  #   url: https://netbox.example.com/mcp
+  #   apiKeySecretRef: netbox-api-key

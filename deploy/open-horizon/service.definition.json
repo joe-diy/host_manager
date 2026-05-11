@@ -1,0 +1,80 @@
+{
+  "$schema": "https://raw.githubusercontent.com/open-horizon/anax/master/cli/samples/service_def_schema.json",
+  "label": "Host Manager Control Plane",
+  "description": "Host Manager — fleet management for heterogeneous endpoints. Bundles WasmCloud host, NATS, and OpenBao.",
+  "public": false,
+  "documentation": "https://github.com/joe-diy/host_manager",
+  "url": "github.com.joe-diy.host_manager",
+  "version": "0.1.0",
+  "arch": "$ARCH",
+  "sharable": "singleton",
+  "requiredServices": [],
+  "userInput": [
+    {
+      "name": "HOSTMGR_EXTERNAL_URL",
+      "label": "Public URL of the control plane",
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "name": "HOSTMGR_ALLOWED_USERS",
+      "label": "Comma-separated operator allowlist (e.g. github:joewxboy)",
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "name": "HOSTMGR_AUTH_GITHUB_CLIENT_ID",
+      "label": "GitHub OAuth App client ID",
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "name": "HOSTMGR_UPDATE_TRIGGER",
+      "label": "Agent update trigger (manual | automatic)",
+      "type": "string",
+      "defaultValue": "manual"
+    },
+    {
+      "name": "RUST_LOG",
+      "label": "Log level filter",
+      "type": "string",
+      "defaultValue": "info"
+    }
+  ],
+  "deployment": {
+    "services": {
+      "nats": {
+        "image": "nats:2.10-alpine",
+        "command": ["-c", "/etc/nats/nats.conf"],
+        "ports": [
+          { "HostPort": "443:443/tcp", "LocalPort": "443/tcp" }
+        ],
+        "volumes": [
+          { "name": "nats-data", "path": "/data", "read_only": false }
+        ],
+        "specific_ports": []
+      },
+      "openbao": {
+        "image": "openbao/openbao:2.0",
+        "command": ["server", "-dev"],
+        "environment": {
+          "BAO_DEV_LISTEN_ADDRESS": "0.0.0.0:8200"
+        },
+        "cap_add": ["IPC_LOCK"],
+        "specific_ports": []
+      },
+      "wasmcloud": {
+        "image": "ghcr.io/wasmcloud/wasmcloud:1.4",
+        "environment": {
+          "WASMCLOUD_NATS_HOST": "nats",
+          "WASMCLOUD_NATS_PORT": "4222"
+        },
+        "ports": [
+          { "HostPort": "8080:8080/tcp", "LocalPort": "8080/tcp" }
+        ],
+        "specific_ports": [],
+        "ephemeral_ports": []
+      }
+    }
+  }
+}

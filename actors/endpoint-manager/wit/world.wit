@@ -1,0 +1,13 @@
+/// Endpoint Manager — lifecycle orchestrator.
+/// Receives events from all other actors and owns status transitions.
+/// Run `wash wit deps` to pull wasmcloud:messaging WIT files.
+package hostmgr:endpoint-manager@0.1.0;
+
+world endpoint-manager {
+    /// Publish messages to other actors and the agent bus.
+    import wasmcloud:messaging/consumer@0.2.0;
+
+    /// Receive events: discovery.complete, endpoint.{id}.identified,
+    /// agent.{id}.lifecycle.*, agent.{id}.status.heartbeat (timeout watcher)
+    export wasmcloud:messaging/handler@0.2.0;
+}

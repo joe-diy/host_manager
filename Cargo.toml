@@ -1,0 +1,106 @@
+[workspace]
+resolver = "2"
+members = [
+    # Shared library crates
+    "crates/types",
+    "crates/protocol",
+
+    # WasmCloud actors (compiled to wasm32-wasip2)
+    "actors/endpoint-manager",
+    "actors/discovery-orchestrator",
+    "actors/identifier",
+    "actors/credential-manager",
+    "actors/api-gateway",
+    "actors/agent-coordinator",
+
+    # Native capability providers
+    "providers/discovery",
+    "providers/identification",
+    "providers/credentials",
+    "providers/mcp-client",
+
+    # Native binaries
+    "agent",
+    "cli",
+]
+
+[workspace.package]
+version      = "0.1.0"
+edition      = "2021"
+authors      = ["Joseph Pearson <joewxboy@gmail.com>"]
+license      = "Apache-2.0"
+repository   = "https://github.com/joe-diy/host_manager"
+rust-version = "1.88"
+
+# ---------------------------------------------------------------------------
+# Shared dependency versions — individual crates pick what they need
+# ---------------------------------------------------------------------------
+[workspace.dependencies]
+
+# Shared library crates
+hostmgr-types    = { path = "crates/types" }
+hostmgr-protocol = { path = "crates/protocol" }
+
+# Async runtime (native only — not used in WASM actor crates)
+tokio = { version = "1", features = ["full"] }
+
+# Serialization (works on both native and wasm32-wasip2)
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# NATS client (native only)
+async-nats = "0.38"
+
+# HTTP client (native only)
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# HTTP server (native only — used by providers)
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+
+# WasmCloud / WASM component model
+wit-bindgen           = { version = "0.36", default-features = false }
+wasmcloud-provider-sdk = "0.11"
+
+# Error handling (works on both native and wasm32-wasip2)
+anyhow   = "1"
+thiserror = "2"
+
+# Logging (works on both native and wasm32-wasip2)
+tracing             = "0.1"
+tracing-subscriber  = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# CLI argument parsing (native only)
+clap = { version = "4", features = ["derive", "env"] }
+
+# Identifiers
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# TLS (native only)
+rustls         = "0.23"
+rustls-native-certs = "0.8"
+
+# Cryptography — for API key HMAC (native only)
+hmac   = "0.12"
+sha2   = "0.10"
+base64 = "0.22"
+
+# Configuration
+dotenvy = "0.15"
+
+# ---------------------------------------------------------------------------
+# Workspace-wide profile settings
+# ---------------------------------------------------------------------------
+[profile.release]
+codegen-units = 1
+opt-level     = "s"
+debug         = false
+strip         = true
+lto           = true
+
+# WASM-optimised release profile used by wash build
+[profile.release-wasm]
+inherits      = "release"
+opt-level     = "z"

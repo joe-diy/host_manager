@@ -1,0 +1,10 @@
+/// Discovery Orchestrator — manages discovery runs.
+/// Receives discovery.start, calls the discovery capability provider,
+/// publishes endpoint.found for each result, then discovery.complete.
+package hostmgr:discovery-orchestrator@0.1.0;
+
+world discovery-orchestrator {
+    import wasmcloud:messaging/consumer@0.2.0;
+
+    export wasmcloud:messaging/handler@0.2.0;
+}

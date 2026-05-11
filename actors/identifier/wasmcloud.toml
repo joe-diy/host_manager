@@ -1,0 +1,9 @@
+name = "identifier"
+language = "rust"
+type = "component"
+version = "0.1.0"
+
+[component]
+source = "."
+wit_world = "identifier"
+wasm_target = "wasm32-wasip2"

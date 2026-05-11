@@ -1,0 +1,172 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Build agent binary for each target ───────────────────────────────────
+  build-agent:
+    name: Agent — ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            asset_name: hostmgr-agent-linux-x86_64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            asset_name: hostmgr-agent-linux-aarch64
+          - target: armv7-unknown-linux-musleabihf
+            os: ubuntu-latest
+            asset_name: hostmgr-agent-linux-armv7
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Install cross
+        run: cargo install cross --locked
+
+      - name: Build agent (static musl)
+        run: |
+          cross build --release --target ${{ matrix.target }} -p hostmgr-agent
+          cp target/${{ matrix.target }}/release/hostmgr-agent ${{ matrix.asset_name }}
+          chmod +x ${{ matrix.asset_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+
+  # ── Build CLI binary for each target ─────────────────────────────────────
+  build-cli:
+    name: CLI — ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            asset_name: hostmgr-linux-x86_64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            asset_name: hostmgr-linux-aarch64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            asset_name: hostmgr-macos-x86_64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            asset_name: hostmgr-macos-aarch64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (Linux musl targets)
+        if: contains(matrix.target, 'linux')
+        run: cargo install cross --locked
+
+      - name: Build CLI — Linux (cross)
+        if: contains(matrix.target, 'linux')
+        run: |
+          cross build --release --target ${{ matrix.target }} -p hostmgr
+          cp target/${{ matrix.target }}/release/hostmgr ${{ matrix.asset_name }}
+
+      - name: Build CLI — macOS (native)
+        if: contains(matrix.target, 'apple')
+        run: |
+          cargo build --release --target ${{ matrix.target }} -p hostmgr
+          cp target/${{ matrix.target }}/release/hostmgr ${{ matrix.asset_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+
+  # ── Build WasmCloud actors ────────────────────────────────────────────────
+  build-actors:
+    name: Build actors (wash)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: wasm32-wasip2
+          components: rust-src
+
+      - name: Install wash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/wasmCloud/wasmcloud/main/ci/install-wash.sh | bash
+          echo "$HOME/.wash/bin" >> $GITHUB_PATH
+
+      - name: Build actors
+        run: |
+          for actor in endpoint-manager discovery-orchestrator identifier \
+                       credential-manager api-gateway agent-coordinator; do
+            echo "--- Building $actor ---"
+            wash build --project-path actors/$actor
+          done
+
+      - name: Upload actor artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: actors
+          path: "actors/*/build/*.wasm"
+
+  # ── Create GitHub Release ─────────────────────────────────────────────────
+  release:
+    name: Create release
+    needs: [build-agent, build-cli, build-actors]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create checksums
+        run: |
+          cd artifacts
+          find . -type f -not -name "*.sha256" | sort | while read f; do
+            sha256sum "$f" >> SHA256SUMS
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          files: |
+            artifacts/**/*
+            artifacts/SHA256SUMS

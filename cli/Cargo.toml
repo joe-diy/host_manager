@@ -1,0 +1,32 @@
+[package]
+name = "hostmgr"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Host Manager CLI — manage your fleet from the command line"
+
+[[bin]]
+name = "hostmgr"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace         = true
+chrono.workspace         = true
+clap.workspace           = true
+dotenvy.workspace        = true
+reqwest.workspace        = true
+serde.workspace          = true
+serde_json.workspace     = true
+thiserror.workspace      = true
+tokio.workspace          = true
+tracing.workspace        = true
+hostmgr-types.workspace    = true
+hostmgr-protocol.workspace = true
+
+# Pretty terminal output
+console    = "0.15"
+indicatif  = "0.17"
+tabled     = "0.16"
+
+# Token storage (~/.config/hostmgr/token, mode 0600)
+dirs = "5"

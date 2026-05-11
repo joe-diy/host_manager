@@ -1,0 +1,7 @@
+name = "hostmgr-provider-identification"
+language = "rust"
+type = "provider"
+version = "0.1.0"
+
+[provider]
+source = "."

@@ -1,0 +1,23 @@
+[package]
+name = "hostmgr-provider-mcp-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "provider-mcp-client"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+async-nats.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+wasmcloud-provider-sdk.workspace = true
+hostmgr-types.workspace = true
+hostmgr-protocol.workspace = true
+# MCP client is optional enrichment; 5 s timeout enforced via reqwest

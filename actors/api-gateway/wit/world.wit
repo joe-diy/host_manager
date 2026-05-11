@@ -1,0 +1,11 @@
+/// API Gateway — REST API, OAuth/API key auth, serves React UI.
+/// Handles all inbound HTTP (operators, CLI, AI agents) and translates
+/// to NATS messages for internal actors. Also serves static React UI assets.
+package hostmgr:api-gateway@0.1.0;
+
+world api-gateway {
+    import wasmcloud:messaging/consumer@0.2.0;
+
+    /// Serve HTTP (REST API + React UI static assets).
+    export wasi:http/incoming-handler@0.2.0;
+}

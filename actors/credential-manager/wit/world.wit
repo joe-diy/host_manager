@@ -1,0 +1,11 @@
+/// Credential Manager — mediates all OpenBao reads and writes.
+/// No other actor accesses OpenBao directly. All credential requests
+/// are routed through this actor to enforce capability-based access control.
+package hostmgr:credential-manager@0.1.0;
+
+world credential-manager {
+    import wasmcloud:messaging/consumer@0.2.0;
+    import wasmcloud:secrets/store@0.1.0-draft;
+
+    export wasmcloud:messaging/handler@0.2.0;
+}

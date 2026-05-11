@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hostmgr.fullname" . }}-wasmcloud
+  labels:
+    {{- include "hostmgr.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.wasmcloud.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: wasmcloud
+      {{- include "hostmgr.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: wasmcloud
+        {{- include "hostmgr.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: wasmcloud
+          image: "{{ .Values.wasmcloud.image.repository }}:{{ .Values.wasmcloud.image.tag }}"
+          imagePullPolicy: {{ .Values.wasmcloud.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: WASMCLOUD_NATS_HOST
+              value: {{ include "hostmgr.natsHost" . }}
+            - name: WASMCLOUD_NATS_PORT
+              value: "4222"
+            - name: HOSTMGR_EXTERNAL_URL
+              value: "https://{{ .Values.ingress.host }}"
+            - name: HOSTMGR_ALLOWED_USERS
+              value: {{ .Values.auth.allowedUsers | quote }}
+            - name: HOSTMGR_OPENBAO_URL
+              value: {{ .Values.openbao.externalUrl | default (printf "http://%s-openbao:8200" (include "hostmgr.fullname" .)) | quote }}
+            - name: RUST_LOG
+              value: "info"
+          resources:
+            {{- toYaml .Values.wasmcloud.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10

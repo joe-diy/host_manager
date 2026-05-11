@@ -2,6 +2,15 @@
 /target/
 /dist/
 /build/
+
+# Per-crate WASM build outputs (wash build)
+actors/*/build/
+actors/*/*.wasm
+
+# UI
+ui/dist/
+ui/node_modules/
+ui/.vite/
 *.o
 *.so
 *.dylib

@@ -1,0 +1,43 @@
+[package]
+name = "hostmgr-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Host Manager agent — runs on managed endpoints"
+
+[[bin]]
+name = "hostmgr-agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace       = true
+async-nats.workspace   = true
+chrono.workspace       = true
+dotenvy.workspace      = true
+hmac.workspace         = true
+reqwest.workspace      = true
+serde.workspace        = true
+serde_json.workspace   = true
+sha2.workspace         = true
+thiserror.workspace    = true
+tokio.workspace        = true
+tracing.workspace      = true
+tracing-subscriber.workspace = true
+uuid.workspace         = true
+hostmgr-types.workspace    = true
+hostmgr-protocol.workspace = true
+
+# NKey credentials for NATS auth (per ADR-005)
+nkeys = "0.4"
+
+# CLI arg parsing for daemon flags
+clap = { version = "4", features = ["derive", "env"] }
+
+# Hostname detection (for bootstrap)
+hostname = "0.4"
+
+# XDG dirs for config path on Linux
+dirs-next = "2"
+
+# futures for StreamExt
+futures = "0.3"

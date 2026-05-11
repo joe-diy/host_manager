@@ -1,0 +1,19 @@
+[package]
+name        = "agent-coordinator"
+description = "WasmCloud actor — agent presence tracking, command dispatch, update approval"
+version.workspace    = true
+edition.workspace    = true
+authors.workspace    = true
+license.workspace    = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+hostmgr-types    = { workspace = true }
+hostmgr-protocol = { workspace = true }
+wit-bindgen = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+anyhow     = { workspace = true }
