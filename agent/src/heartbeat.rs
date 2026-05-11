@@ -7,7 +7,6 @@
 use anyhow::Result;
 use hostmgr_protocol::subjects;
 use hostmgr_types::agent::{AgentMetrics, Heartbeat};
-use serde_json;
 use std::time::Duration;
 use tracing::{debug, warn};
 

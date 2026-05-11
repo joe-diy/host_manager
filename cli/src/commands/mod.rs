@@ -46,29 +46,3 @@ pub enum DiscoveryCommand {
     /// Show the result of the most recent discovery run.
     Status,
 }
-
-// ── commands (exec) ──────────────────────────────────────────────────────────
-
-#[derive(Args, Debug)]
-pub struct CommandsArgs {
-    #[command(subcommand)]
-    pub command: CommandsCommand,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum CommandsCommand {
-    /// Execute a shell command on one or more endpoints.
-    Exec {
-        /// Target endpoint ID(s), comma-separated, or "all".
-        #[arg(long)]
-        target: String,
-
-        /// Shell command to run.
-        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-        command: Vec<String>,
-
-        /// Timeout in seconds.
-        #[arg(long, default_value = "30")]
-        timeout: u64,
-    },
-}

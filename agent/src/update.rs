@@ -16,7 +16,7 @@ use crate::transport::Connection;
 pub async fn run(conn: Connection, agent_id: String, trigger: String) -> Result<()> {
     match trigger.as_str() {
         "automatic" => run_automatic(conn, agent_id).await,
-        "manual" | _ => {
+        _ => {
             // In manual mode this task is a no-op — updates are driven by the
             // command executor receiving a CommandPayload::Update message.
             info!(%agent_id, "update trigger = manual; waiting for operator command");
@@ -44,7 +44,7 @@ async fn run_automatic(conn: Connection, agent_id: String) -> Result<()> {
     }
 }
 
-async fn check_and_update(conn: &Connection, agent_id: &str) -> Result<()> {
+async fn check_and_update(_conn: &Connection, agent_id: &str) -> Result<()> {
     // TODO (ADR-010 full implementation):
     //
     // CHECKING:

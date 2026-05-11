@@ -13,7 +13,11 @@ use tracing::{info, warn};
 use crate::Args;
 
 /// Opaque connection handle — hides which transport is active.
+///
+/// Fields beyond `nats` are used by the HTTPS polling fallback (stub)
+/// and by future metrics/reconnection logic.
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct Connection {
     pub nats: Option<Client>,
     pub mode: TransportMode,

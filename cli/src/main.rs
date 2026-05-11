@@ -11,7 +11,7 @@
 //!   hostmgr endpoints list
 //!   hostmgr endpoints get <id>
 //!   hostmgr discovery start [--subnet 192.168.1.0/24]
-//!   hostmgr commands exec <endpoint-id> -- <command>
+//!   hostmgr exec --target <id> <command…>
 //!   hostmgr login [--provider github|google]
 //!   hostmgr logout
 //!   hostmgr version
@@ -23,7 +23,7 @@ mod auth;
 mod client;
 pub mod commands;
 
-use commands::{CommandsArgs, DiscoveryArgs, EndpointsArgs};
+use commands::{DiscoveryArgs, EndpointsArgs};
 
 /// Host Manager — fleet management from the command line.
 #[derive(Parser, Debug)]
@@ -58,8 +58,20 @@ enum Commands {
     /// Manage and trigger discovery runs.
     Discovery(DiscoveryArgs),
 
-    /// Dispatch commands to endpoints.
-    Commands(CommandsArgs),
+    /// Execute a shell command on one or more endpoints.
+    Exec {
+        /// Target endpoint ID(s), comma-separated, or "all".
+        #[arg(long)]
+        target: String,
+
+        /// Shell command to run.
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        command: Vec<String>,
+
+        /// Timeout in seconds.
+        #[arg(long, default_value = "30")]
+        timeout: u64,
+    },
 
     /// Authenticate with the Host Manager control plane.
     Login {
@@ -95,8 +107,12 @@ async fn main() -> Result<()> {
         Commands::Discovery(args) => {
             commands::discovery::run(api_client, args).await?;
         }
-        Commands::Commands(args) => {
-            commands::exec::run(api_client, args).await?;
+        Commands::Exec {
+            target,
+            command,
+            timeout,
+        } => {
+            commands::exec::run(api_client, target, command, timeout).await?;
         }
         Commands::Login { provider } => {
             auth::login(&provider).await?;

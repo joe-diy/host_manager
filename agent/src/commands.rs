@@ -15,7 +15,6 @@
 
 use anyhow::Result;
 use hostmgr_protocol::{messages::CommandPayload, subjects};
-use serde_json;
 use tracing::{info, warn};
 
 use crate::transport::Connection;
