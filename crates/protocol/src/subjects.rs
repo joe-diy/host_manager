@@ -28,17 +28,17 @@ pub const ENDPOINT_IDENTIFIED_SUFFIX: &str = "identified";
 
 // ── Agent commands ────────────────────────────────────────────────────────────
 
-pub const AGENT_CMD_EXEC: &str    = "exec";
+pub const AGENT_CMD_EXEC: &str = "exec";
 pub const AGENT_CMD_INSTALL: &str = "install";
-pub const AGENT_CMD_CONFIG: &str  = "config";
+pub const AGENT_CMD_CONFIG: &str = "config";
 pub const AGENT_CMD_RESTART: &str = "restart";
-pub const AGENT_CMD_UPDATE: &str  = "update";
+pub const AGENT_CMD_UPDATE: &str = "update";
 
 // ── Agent status ──────────────────────────────────────────────────────────────
 
 pub const AGENT_STATUS_HEARTBEAT: &str = "heartbeat";
-pub const AGENT_STATUS_RESULT: &str    = "result";
-pub const AGENT_STATUS_METRICS: &str   = "metrics";
+pub const AGENT_STATUS_RESULT: &str = "result";
+pub const AGENT_STATUS_METRICS: &str = "metrics";
 
 // ── Agent logs ────────────────────────────────────────────────────────────────
 
@@ -46,19 +46,19 @@ pub const AGENT_LOGS_STREAM: &str = "stream";
 
 // ── Agent lifecycle ───────────────────────────────────────────────────────────
 
-pub const AGENT_LIFECYCLE_CONNECTED:        &str = "connected";
-pub const AGENT_LIFECYCLE_DISCONNECTED:     &str = "disconnected";
+pub const AGENT_LIFECYCLE_CONNECTED: &str = "connected";
+pub const AGENT_LIFECYCLE_DISCONNECTED: &str = "disconnected";
 pub const AGENT_LIFECYCLE_UPDATE_AVAILABLE: &str = "update_available";
 
 // ── Broadcast ─────────────────────────────────────────────────────────────────
 
-pub const AGENT_BROADCAST_PING:   &str = "agent.broadcast.cmd.ping";
+pub const AGENT_BROADCAST_PING: &str = "agent.broadcast.cmd.ping";
 pub const AGENT_BROADCAST_UPDATE: &str = "agent.broadcast.cmd.update";
 
 // ── NATS KV bucket names ──────────────────────────────────────────────────────
 
 pub const KV_BUCKET_ENDPOINT_STATE: &str = "ENDPOINT_STATE";
-pub const KV_STREAM_AGENT_CMDS: &str     = "AGENT_CMDS";
+pub const KV_STREAM_AGENT_CMDS: &str = "AGENT_CMDS";
 
 // ── Subject builder helpers ───────────────────────────────────────────────────
 

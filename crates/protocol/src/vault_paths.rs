@@ -7,10 +7,10 @@
 
 pub const VAULT_ENDPOINTS_PREFIX: &str = "secret/endpoints";
 
-pub const ENDPOINT_SUB_CORE:        &str = "core";
-pub const ENDPOINT_SUB_NETWORK:     &str = "network";
-pub const ENDPOINT_SUB_IDENTITY:    &str = "identity";
-pub const ENDPOINT_SUB_AGENT:       &str = "agent";
+pub const ENDPOINT_SUB_CORE: &str = "core";
+pub const ENDPOINT_SUB_NETWORK: &str = "network";
+pub const ENDPOINT_SUB_IDENTITY: &str = "identity";
+pub const ENDPOINT_SUB_AGENT: &str = "agent";
 pub const ENDPOINT_SUB_CREDENTIALS: &str = "credentials";
 
 // ── Credential paths ──────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ pub const VAULT_CREDENTIALS_PREFIX: &str = "secret/credentials";
 // ── Agent NKey paths ──────────────────────────────────────────────────────────
 
 pub const VAULT_AGENTS_PREFIX: &str = "secret/agents";
-pub const AGENT_NKEY_SUFFIX:   &str = "nkey";
+pub const AGENT_NKEY_SUFFIX: &str = "nkey";
 
 // ── Control plane config ──────────────────────────────────────────────────────
 
@@ -28,9 +28,9 @@ pub const VAULT_CONFIG_OAUTH_GITHUB_CLIENT_SECRET: &str =
     "secret/config/oauth/github_client_secret";
 pub const VAULT_CONFIG_OAUTH_GOOGLE_CLIENT_SECRET: &str =
     "secret/config/oauth/google_client_secret";
-pub const VAULT_CONFIG_JWT_SIGNING_KEY:    &str = "secret/config/jwt_signing_key";
-pub const VAULT_CONFIG_API_KEYS_PREFIX:    &str = "secret/config/api_keys";
-pub const VAULT_CONFIG_MCP_PREFIX:         &str = "secret/config/mcp";
+pub const VAULT_CONFIG_JWT_SIGNING_KEY: &str = "secret/config/jwt_signing_key";
+pub const VAULT_CONFIG_API_KEYS_PREFIX: &str = "secret/config/api_keys";
+pub const VAULT_CONFIG_MCP_PREFIX: &str = "secret/config/mcp";
 
 // ── Path builder helpers ──────────────────────────────────────────────────────
 
