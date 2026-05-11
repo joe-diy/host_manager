@@ -26,6 +26,7 @@ services:
       - "8222:8222"   # NATS monitoring HTTP
     volumes:
       - ../../config/nats.conf:/etc/nats/nats.conf:ro
+      - ../../config/tls:/etc/nats/tls:ro
       - nats-data:/data
     healthcheck:
       test: ["CMD", "nats-server", "--help"]
