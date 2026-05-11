@@ -62,7 +62,9 @@ pub async fn run(conn: Connection, agent_id: String) -> Result<()> {
     let mut messages = consumer.messages().await?;
     while let Some(msg) = futures::StreamExt::next(&mut messages).await {
         let msg = msg?;
-        msg.ack().await.map_err(|e| anyhow::anyhow!("ack error: {e}"))?;
+        msg.ack()
+            .await
+            .map_err(|e| anyhow::anyhow!("ack error: {e}"))?;
 
         match serde_json::from_slice::<hostmgr_protocol::messages::CommandMessage>(&msg.payload) {
             Ok(cmd) => {
@@ -88,7 +90,14 @@ async fn execute_command(
             command,
             timeout_seconds,
             working_directory,
-        } => exec_shell(command, Some((*timeout_seconds) as u64), working_directory.as_deref()).await,
+        } => {
+            exec_shell(
+                command,
+                Some((*timeout_seconds) as u64),
+                working_directory.as_deref(),
+            )
+            .await
+        }
 
         CommandPayload::Restart { .. } => {
             // TODO: restart named service
@@ -106,9 +115,9 @@ async fn execute_command(
     // Publish result
     if let Some(nats) = &conn.nats {
         let result_subject = format!("agent.{agent_id}.cmd_result.{}", cmd.command_id);
-        let payload = serde_json::to_vec(&result.unwrap_or_else(|e| {
-            serde_json::json!({"error": e.to_string()})
-        }))
+        let payload = serde_json::to_vec(
+            &result.unwrap_or_else(|e| serde_json::json!({"error": e.to_string()})),
+        )
         .unwrap_or_default();
         let _ = nats.publish(result_subject, payload.into()).await;
     }

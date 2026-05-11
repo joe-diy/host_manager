@@ -24,12 +24,12 @@ pub async fn run(conn: Connection, agent_id: String) -> Result<()> {
         interval.tick().await;
 
         let hb = Heartbeat {
-            endpoint_id:    agent_id.clone(),
-            reported_at:    chrono::Utc::now(),
-            agent_version:  env!("CARGO_PKG_VERSION").to_string(),
-            transport:      hostmgr_types::agent::Transport::Wss,
+            endpoint_id: agent_id.clone(),
+            reported_at: chrono::Utc::now(),
+            agent_version: env!("CARGO_PKG_VERSION").to_string(),
+            transport: hostmgr_types::agent::Transport::Wss,
             uptime_seconds: 0, // TODO: read from /proc/uptime
-            metrics:        collect_metrics(),
+            metrics: collect_metrics(),
         };
 
         let subject = subjects::agent_status_subject(&agent_id, "heartbeat");
@@ -50,12 +50,12 @@ pub async fn run(conn: Connection, agent_id: String) -> Result<()> {
 fn collect_metrics() -> AgentMetrics {
     // TODO: read /proc/loadavg, /proc/meminfo, /proc/diskstats
     AgentMetrics {
-        cpu_percent:       0.0,
-        memory_used_mb:    0,
-        memory_total_mb:   0,
+        cpu_percent: 0.0,
+        memory_used_mb: 0,
+        memory_total_mb: 0,
         disk_used_percent: 0.0,
-        load_1m:           0.0,
-        load_5m:           0.0,
-        load_15m:          0.0,
+        load_1m: 0.0,
+        load_5m: 0.0,
+        load_15m: 0.0,
     }
 }

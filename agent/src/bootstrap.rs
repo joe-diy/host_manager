@@ -66,9 +66,11 @@ pub async fn run(token: &str) -> Result<String> {
     write_secret_file(&seed_path, resp.nkey_seed.as_bytes())?;
 
     let conf_path = config_dir.join("agent.conf");
-    let conf = format!("HOSTMGR_AGENT_ID={}\nHOSTMGR_NATS_NKEY_SEED_REF={}\n",
+    let conf = format!(
+        "HOSTMGR_AGENT_ID={}\nHOSTMGR_NATS_NKEY_SEED_REF={}\n",
         resp.agent_id,
-        seed_path.display());
+        seed_path.display()
+    );
     std::fs::write(&conf_path, conf)?;
 
     info!(agent_id = %resp.agent_id, config = %conf_path.display(), "bootstrap complete");

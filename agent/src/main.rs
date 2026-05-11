@@ -59,13 +59,15 @@ async fn main() -> Result<()> {
 
     tracing_subscriber::fmt()
         .with_env_filter(
-            std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "info,hostmgr_agent=debug".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "info,hostmgr_agent=debug".into()),
         )
         .init();
 
     let args = Args::parse();
-    info!(version = env!("CARGO_PKG_VERSION"), "hostmgr-agent starting");
+    info!(
+        version = env!("CARGO_PKG_VERSION"),
+        "hostmgr-agent starting"
+    );
 
     // --- Bootstrap phase ---------------------------------------------------
     // If no agent_id is set, we have not yet registered with the control plane.
@@ -73,11 +75,12 @@ async fn main() -> Result<()> {
     let agent_id = if let Some(id) = args.agent_id.clone() {
         id
     } else {
-        let token = args.bootstrap_token.as_deref()
-            .ok_or_else(|| anyhow::anyhow!(
+        let token = args.bootstrap_token.as_deref().ok_or_else(|| {
+            anyhow::anyhow!(
                 "no HOSTMGR_AGENT_ID set and no HOSTMGR_BOOTSTRAP_TOKEN provided; \
                  cannot bootstrap. Set one of these env vars."
-            ))?;
+            )
+        })?;
         bootstrap::run(token).await?
     };
 

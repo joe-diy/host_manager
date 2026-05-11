@@ -1,14 +1,16 @@
 use anyhow::Result;
 use serde_json::{json, Value};
 
-use crate::client::ApiClient;
 use super::{CommandsArgs, CommandsCommand};
+use crate::client::ApiClient;
 
 pub async fn run(client: ApiClient, args: CommandsArgs) -> Result<()> {
     match args.command {
-        CommandsCommand::Exec { target, command, timeout } => {
-            exec(&client, &target, command, timeout).await
-        }
+        CommandsCommand::Exec {
+            target,
+            command,
+            timeout,
+        } => exec(&client, &target, command, timeout).await,
     }
 }
 

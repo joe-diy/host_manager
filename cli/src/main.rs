@@ -81,7 +81,9 @@ async fn main() -> Result<()> {
 
     let cli = Cli::parse();
 
-    let base_url = cli.url.clone()
+    let base_url = cli
+        .url
+        .clone()
         .unwrap_or_else(|| "https://localhost:443".to_string());
 
     let api_client = client::ApiClient::new(base_url, cli.api_key.clone(), &cli.output)?;
