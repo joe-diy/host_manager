@@ -27,10 +27,7 @@ impl exports::wasi::http::incoming_handler::Guest for Component {
     }
 }
 
-fn send_response(
-    response_out: wasi::http::types::ResponseOutparam,
-    status: u16,
-) {
+fn send_response(response_out: wasi::http::types::ResponseOutparam, status: u16) {
     let headers = wasi::http::types::Fields::new();
     let resp = wasi::http::types::OutgoingResponse::new(headers);
     let _ = resp.set_status_code(status);

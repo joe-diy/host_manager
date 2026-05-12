@@ -22,6 +22,7 @@ ui/.vite/
 # IDE
 .vscode/
 .idea/
+.abacusai/
 *.swp
 *.swo
 *~
